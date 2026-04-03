@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { monthData, categoryIcons, categoryNames, months, CategoryData } from "@/data/monthData";
+import { monthData, monthImageData, categoryIcons, categoryNames, months, CategoryData, MonthKey } from "@/data/monthData";
 import * as Icons from "lucide-react";
 
 export default function Home() {
@@ -47,7 +47,8 @@ export default function Home() {
     return IconComponent ? <IconComponent className="w-6 h-6" /> : null;
   };
 
-  const selectedData = selectedMonth ? monthData[normalizeMonth(selectedMonth)] : null;
+  const selectedData = selectedMonth ? monthData[normalizeMonth(selectedMonth) as MonthKey] : null;
+  const selectedImageData = selectedMonth ? monthImageData[normalizeMonth(selectedMonth) as MonthKey] : null;
 
   const renderMonthSelection = () => (
     <div className="max-w-4xl mx-auto">
@@ -88,7 +89,7 @@ export default function Home() {
           </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {Object.entries(categoryNames).map(([key, name]) => {
             const categoryKey = key as keyof CategoryData;
             const iconName = categoryIcons[categoryKey];
@@ -116,11 +117,12 @@ export default function Home() {
   };
 
   const renderResult = () => {
-    if (!selectedData || !selectedCategory) return null;
+    if (!selectedData || !selectedCategory || !selectedImageData) return null;
     
     const categoryKey = selectedCategory as keyof CategoryData;
     const categoryName = categoryNames[categoryKey];
     const categoryValue = selectedData[categoryKey];
+    const categoryImage = selectedImageData[categoryKey];
     const iconName = categoryIcons[categoryKey];
     
     return (
@@ -137,12 +139,20 @@ export default function Home() {
           </button>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 max-w-2xl mx-auto">
+        <div className="w-full max-w-md mx-auto p-6 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
           <div className="text-center mb-6">
             <div className="text-purple-400 text-6xl mb-4 inline-block">
               {getIcon(iconName)}
             </div>
             <h3 className="text-2xl font-bold text-white mb-2">{categoryName}</h3>
+          </div>
+          
+          <div className="mb-6">
+            <img 
+              src={categoryImage} 
+              alt={categoryName}
+              className="w-full h-64 object-cover rounded-lg shadow-lg"
+            />
           </div>
           
           <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-8 text-white text-center">
@@ -172,9 +182,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white">
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
             Doğduğun Aya Göre Nesin?
           </h1>
           <p className="text-lg md:text-xl text-gray-300">
