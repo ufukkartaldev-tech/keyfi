@@ -1,65 +1,191 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { monthData, categoryIcons, categoryNames, months, CategoryData } from "@/data/monthData";
+import * as Icons from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [currentStep, setCurrentStep] = useState<'month' | 'category' | 'result'>('month');
+
+  const handleMonthSelect = (month: string) => {
+    console.log("Ay seçildi:", month);
+    setSelectedMonth(month);
+    setCurrentStep('category');
+  };
+
+  const handleCategorySelect = (category: string) => {
+    console.log("Kategori seçildi:", category);
+    setSelectedCategory(category);
+    setCurrentStep('result');
+  };
+
+  const handleBackToMonth = () => {
+    setCurrentStep('month');
+    setSelectedMonth("");
+    setSelectedCategory("");
+  };
+
+  const handleBackToCategory = () => {
+    setCurrentStep('category');
+    setSelectedCategory("");
+  };
+
+  const normalizeMonth = (month: string) => {
+    return month.toLowerCase()
+      .replace('ş', 's')
+      .replace('ç', 'c')
+      .replace('ğ', 'g')
+      .replace('ı', 'i')
+      .replace('ö', 'o')
+      .replace('ü', 'u');
+  };
+
+  const getIcon = (iconName: string) => {
+    const IconComponent = (Icons as any)[iconName];
+    return IconComponent ? <IconComponent className="w-6 h-6" /> : null;
+  };
+
+  const selectedData = selectedMonth ? monthData[normalizeMonth(selectedMonth)] : null;
+
+  const renderMonthSelection = () => (
+    <div className="max-w-4xl mx-auto">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-semibold mb-6">Doğum Ayınızı Seçin</h2>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {months.map((month) => (
+          <button
+            key={month}
+            onClick={() => handleMonthSelect(month)}
+            className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-xl"
+          >
+            <div className="text-lg font-semibold">{month}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderCategorySelection = () => {
+    if (!selectedData) return null;
+    
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-2">
+            {selectedMonth} Ayı İçin Kategori Seçin
+          </h2>
+          <p className="text-gray-300 mb-4">
+            Hangi kategorideki sonucu görmek istersiniz?
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={handleBackToMonth}
+            className="mt-4 px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-300"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Başka Ay Seç
+          </button>
         </div>
-      </main>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Object.entries(categoryNames).map(([key, name]) => {
+            const categoryKey = key as keyof CategoryData;
+            const iconName = categoryIcons[categoryKey];
+            
+            return (
+              <button
+                key={key}
+                onClick={() => handleCategorySelect(key)}
+                className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-xl text-left"
+              >
+                <div className="flex items-center mb-3">
+                  <div className="text-purple-400 mr-3">
+                    {getIcon(iconName)}
+                  </div>
+                  <h3 className="font-semibold text-gray-300">
+                    {name}
+                  </h3>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderResult = () => {
+    if (!selectedData || !selectedCategory) return null;
+    
+    const categoryKey = selectedCategory as keyof CategoryData;
+    const categoryName = categoryNames[categoryKey];
+    const categoryValue = selectedData[categoryKey];
+    const iconName = categoryIcons[categoryKey];
+    
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-2">
+            {selectedMonth} Ayı - {categoryName}
+          </h2>
+          <button
+            onClick={handleBackToCategory}
+            className="mt-4 px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors duration-300"
+          >
+            Başka Kategori Seç
+          </button>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 max-w-2xl mx-auto">
+          <div className="text-center mb-6">
+            <div className="text-purple-400 text-6xl mb-4 inline-block">
+              {getIcon(iconName)}
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">{categoryName}</h3>
+          </div>
+          
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-8 text-white text-center">
+            <p className="text-lg mb-2">
+              <span className="font-semibold">Doğum Ayı:</span> {selectedMonth}
+            </p>
+            <p className="text-3xl font-bold mt-4">
+              {categoryValue}
+            </p>
+          </div>
+          
+          <div className="mt-6 text-center">
+            <p className="text-gray-300 mb-4">
+              Ekran görüntüsü alarak sonucunuzu paylaşabilirsiniz!
+            </p>
+            <button
+              onClick={handleBackToMonth}
+              className="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors duration-300"
+            >
+              Baştan Başla
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white">
+      <div className="container mx-auto px-4 py-8">
+        <header className="text-center mb-12">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Doğduğun Aya Göre Nesin?
+          </h1>
+          <p className="text-lg md:text-xl text-gray-300">
+            Doğum ayınızı seçin ve kendinizi keşfedin!
+          </p>
+        </header>
+
+        {currentStep === 'month' && renderMonthSelection()}
+        {currentStep === 'category' && renderCategorySelection()}
+        {currentStep === 'result' && renderResult()}
+      </div>
     </div>
   );
 }
